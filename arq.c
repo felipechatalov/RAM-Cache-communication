@@ -230,6 +230,7 @@ int generateRandomRAMAccess(InputObj testRAM[], int mramsize, int n){
         testRAM[i].value = getRandomInt(0, mramsize);
         int r;
         r = getRandomInt(0, 10);
+        // se o valor gerado for menor que 2, o acesso eh de atualizacao, assim +- 10% dos valores serao de atualizacao
         if (r < 2){
             r = 1;
         }
