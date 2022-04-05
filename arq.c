@@ -4,9 +4,9 @@
 #include <string.h>
 
 #define RAM_TEST_ARRAY_SIZE 16
-#define MRAM_SIZE 16
+#define MRAM_SIZE 256
 #define CACHE_SIZE 4 
-#define BLOCK_SIZE 2
+#define BLOCK_SIZE 4
 #define NULL_VALUE_FOR_CACHE -111
 // standard values for constants: 
 // RAM_TEST_ARRAY_SIZE = 1000
@@ -163,8 +163,8 @@ Fila* randomizeFila(Fila* fila){
 }
 // imprime a memoria ram e cache ao lado, bom para mostrar tudo ao mesmo tempo para o usuario
 void showRAMandCache(int mram[], CacheSlot cache[]){
-    int rows = 4;
-    int higher = MRAM_SIZE/4;
+    int rows = 12;
+    int higher = (MRAM_SIZE/rows)+1;
     if (CACHE_SIZE > higher){
         higher = CACHE_SIZE;
     }
@@ -176,7 +176,7 @@ void showRAMandCache(int mram[], CacheSlot cache[]){
             for (int j = 0; j < BLOCK_SIZE; j++){
                 printf("%d ", cache[i].values[j].value);
             }
-            printf("]\t\t");
+            printf("]\t");
         }
         else{
             printf("\n\t\t\t");
@@ -186,7 +186,7 @@ void showRAMandCache(int mram[], CacheSlot cache[]){
             for (int k = 0; k < rows; k++){
                 int t = (i+(k*MRAM_SIZE/rows));
                 if (t < MRAM_SIZE){
-                    printf("[%2d] = %d\t", t, mram[t]);
+                    printf("[%4d] = %d  ", t, mram[t]);
                 }
             }
         }
@@ -242,6 +242,19 @@ int generateRandomRAMAccess(InputObj testRAM[], int mramsize, int n){
     }
     return 1;
 }
+int printInputObjArray(InputObj testRAM[], int n){
+    printf("\n");
+    for (int i = 0; i < n; i++){
+        printf("%d", testRAM[i].value);
+        if (testRAM[i].update == 1){
+            printf("* ");
+        }
+        else printf(" ");
+    }
+    printf("\n");
+    return 1;
+}
+
 // retorna um vetor de acesso aleatorio na memoria ram para o uso do LRU(least recently used)
 int mapLRU(int lru[]){
     int iter = 0;
@@ -342,7 +355,6 @@ void writeBack(CacheSlot cache[], int mram[], int pos){
     }
 }
 // troca CacheBlock's quando a memoria cache ja se encontra cheia
-
 void switchCacheBlock(CacheSlot cache[], int mram[], int pos, CacheSlot* block){
     // pos = posicao do bloco na memoria cache que vai ser substituido
     // block = bloco que vai substituir o bloco na posicao pos
@@ -420,6 +432,18 @@ int getNextFromLRU(int lru[]){
 
     return lru[CACHE_SIZE-1];
 }
+
+int verificaInput(char* buffer, int i){
+    // 0 = 48
+    // 9 = 57
+    for (int j = 0; j < i-1; j++){
+        if (buffer[j] < 48 || buffer[j] > 57){
+            return 0;
+        }
+    
+    }
+    return 1;
+}
 // cuida do input do usuario para a posicao a ser acessada da memoria RAM
 int handleUserInput(int* update){
 
@@ -448,20 +472,27 @@ int handleUserInput(int* update){
         *p++ = 0;
         number = atoi(buffer);
 
+        if (strcmp(buffer, "quit") == 0){
+            printf("\nSaindo do programa");
+            return -1;
+        }
         // verifica se a primeira posicao do buffer se encontra entre 0 e 9 em ascii
         // e se o numero é posistivo e menor que o tamanho da memoria RAM
         // 0 -> 48    9 -> 57
         // TODO: verificar todos os indices de buffer
-        if ((buffer[0] < 48 || buffer[0] > 57 ) || (number < 0 || number > MRAM_SIZE-1)){
+        else if (i == 0 || !verificaInput(buffer, i) || (number < 0 || number > MRAM_SIZE-1)){
+
             // caso encontre algum erro ele deixa 'retry' como 0 para que o usuario tente novamente
             retry = 1;
             *update = 0;
-            printf("\nIndex invalido ou nenhum index inserido, digite novamente");
+            printf("\nIndex invalido, digite um index novamente ou 'quit' para sair");
             printf("\n$.. ");
         }
         else{
             retry = 0;
         }
+        
+
     }
     // printf("\n%s", buffer);
     *update = 0;
@@ -475,7 +506,7 @@ int handleUserInput(int* update){
 }
 // cuida de toda a logica de acessar uma poiscao da memoria RAM e se deve ou nao copiar o bloco para a CACHE
 int TryToAccessAddress(int mram[], int slot, int update, CacheSlot cache[], Fila* FIFO, int lru[]){
-    int pos;
+    int pos, block;
     CacheSlot* ptr;
     // acessa a posicao da memoria RAM
     ptr = accessRAMSlot(slot, update, mram, &pos);
@@ -483,8 +514,13 @@ int TryToAccessAddress(int mram[], int slot, int update, CacheSlot cache[], Fila
     printCacheSlot(ptr);
 
     // caso o endereco ja se encontre na cache retorna 1
-    if (isInsideCache(ptr->values[pos].RAMaddress, cache, &pos)){
+    if (isInsideCache(ptr->values[pos].RAMaddress, cache, &block)){
         solveLRU(lru, pos);
+        if (update){
+            cache[block].values[pos].value = ptr->values[pos].value;
+            cache[block].values[pos].update = 1;
+        }
+        
         return 1;
     }
     
@@ -548,13 +584,14 @@ int StepByStepUser(){
 
     showRAMandCache(mram, cache);
     
+    printf("\n------------------------------------------------------------");
+    printf("\n\nDigite um index para acessar da memoria RAM ou 'quit' para sair");
+    input = handleUserInput(&update);
     // TODO: fazer o programa rodar em loop ate que o usuario digite 'quit'
-    while (iter < RAM_TEST_ARRAY_SIZE){
-        printf("\n------------------------------------------------------------");
-        printf("\n\nDigite um index para acessar da memoria RAM");
-        input = handleUserInput(&update);
-        printf("\nACESSANDO INDEX '%d' DA MRAM, DE VALOR %d", input, mram[input]);
+    // feito, falta verificar
+    while (input != -1){
 
+        printf("\nACESSANDO INDEX '%d' DA MRAM, DE VALOR %d", input, mram[input]);
         TryToAccessAddress(mram, input, update, cache, &fila, lru);
         
         printFila(&fila);
@@ -563,9 +600,12 @@ int StepByStepUser(){
         printf("\n");
         showRAMandCache(mram, cache);
         
-        printf("\nPressione alguma tecla para prosseguir");
+        // printf("\nPressione alguma tecla para prosseguir");
+        // printf("\n------------------------------------------------------------");
+        // getchar();
         printf("\n------------------------------------------------------------");
-        getchar();
+        printf("\n\nDigite um index para acessar da memoria RAM ou 'quit' para sair");
+        input = handleUserInput(&update);
         iter++;
     }
 }
@@ -591,10 +631,21 @@ int StepByStepAlone(){
     printf("\nOrdem de acesso a memoria cache pela fila");
     printFila(&fila);  
     printLRU(lru);
- 
+
+
+
+    printf("\nFila de acessos a memoria RAM");
+    printInputObjArray(testArray, RAM_TEST_ARRAY_SIZE);
+
+
     showRAMandCache(mram, cache);
-    
-    getchar();
+
+    printf("\nPressione alguma tecla para prosseguir ou 'q' para sair");
+    int ch = getchar();
+        if (ch == 'q'){
+            printf("\nSaindo do programa");
+            return 0;
+        }
 
     int iter = 0;
     while (iter < RAM_TEST_ARRAY_SIZE){
@@ -602,14 +653,20 @@ int StepByStepAlone(){
         printf("\nAcessando index '%d' da memoria ram, de valor %d", testArray[iter].value, mram[testArray[iter].value]);
         TryToAccessAddress(mram, testArray[iter].value, testArray[iter].update, cache, &fila, lru);
         
+        printf("\nFila de acessos a memoria RAM");
+        printInputObjArray(testArray, RAM_TEST_ARRAY_SIZE);
         printFila(&fila);
         printLRU(lru);
         
         showRAMandCache(mram, cache);
         
-        printf("\nPressione alguma tecla para prosseguir");
+        printf("\nPressione alguma tecla para prosseguir ou 'q' para sair");
         printf("\n------------------------------------------------------------");
-        getchar();
+        ch = getchar();
+        if (ch == 'q'){
+            printf("\nSaindo do programa");
+            break;
+        }
         iter++;
     }
 }
