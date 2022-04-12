@@ -4,12 +4,12 @@
 #include <string.h>
 
 #define RAM_TEST_ARRAY_SIZE 16
-#define MRAM_SIZE 256
+#define MRAM_SIZE 48
 #define CACHE_SIZE 4 
 #define BLOCK_SIZE 4
 #define NULL_VALUE_FOR_CACHE -111
 // standard values for constants: 
-// RAM_TEST_ARRAY_SIZE = 1000
+// RAM_TEST_ARRAY_SIZE = 100
 // MRAM_SIZE = 1024
 // CACHE_SIZE = 32
 // BLOCK_SIZE = 4
@@ -163,7 +163,7 @@ Fila* randomizeFila(Fila* fila){
 }
 // imprime a memoria ram e cache ao lado, bom para mostrar tudo ao mesmo tempo para o usuario
 void showRAMandCache(int mram[], CacheSlot cache[]){
-    int rows = 12;
+    int rows = 8;
     int higher = (MRAM_SIZE/rows)+1;
     if (CACHE_SIZE > higher){
         higher = CACHE_SIZE;
@@ -382,7 +382,7 @@ void copyCacheBlock(CacheSlot cache[], int pos, CacheSlot* block){
 }
 // procura um valor(search) na memoria cache e retorna 1 caso encontre e retorna a sua pos do bloco na cache
 int isInsideCache(int search, CacheSlot cache[], int* pos){
-    printf("\nProcurando por %d na cache", search);
+    // printf("\nProcurando por %d na cache", search);
     for (int i = 0; i < CACHE_SIZE; i++){
         for (int j = 0; j < BLOCK_SIZE; j++){
             if (cache[i].values[j].RAMaddress == search){
@@ -400,7 +400,7 @@ int isInsideCache(int search, CacheSlot cache[], int* pos){
 int isCacheFull(CacheSlot cache[]){
     for (int i = 0; i < CACHE_SIZE; i++){
         if (cache[i].values[0].value == NULL_VALUE_FOR_CACHE){
-            printf("\nCache nao esta cheia");
+            // printf("\nCache nao esta cheia");
             return 0;
         }        
     }
@@ -442,6 +442,10 @@ int verificaInput(char* buffer, int i){
         }
     
     }
+    if ((buffer[i-1] < 48 || buffer[i-1] > 57) && buffer[i-1] != 42){
+        return 0;
+    }
+    
     return 1;
 }
 // cuida do input do usuario para a posicao a ser acessada da memoria RAM
@@ -494,14 +498,12 @@ int handleUserInput(int* update){
         
 
     }
-    // printf("\n%s", buffer);
     *update = 0;
     // caso a ultima posicao do 'buffer' seja um '*' o endereco acessado deve ser atualizado
     if (buffer[i-1] == 42){
         *update = 1;
         buffer[i-1] = 0;
     }
-    printf("\nbuffer %s   update", buffer, *update);
     return number;
 }
 // cuida de toda a logica de acessar uma poiscao da memoria RAM e se deve ou nao copiar o bloco para a CACHE
@@ -608,6 +610,7 @@ int StepByStepUser(){
         input = handleUserInput(&update);
         iter++;
     }
+    return 0;
 }
 // funcao onde o usuario passa pelo programa passo a passo porem sem escolher qual posicao da RAM eh acessada
 int StepByStepAlone(){
@@ -669,9 +672,10 @@ int StepByStepAlone(){
         }
         iter++;
     }
+    return 0;
 }
 
-void main(int argc, char* argv[]){
+int main(int argc, char* argv[]){
     // modo passo a passo com escolhas do usuario
     if (argc == 2 && strcmp(argv[1], "-s") == 0){
         StepByStepUser();
@@ -687,4 +691,5 @@ void main(int argc, char* argv[]){
         printf("$ '%s -i' (modo com acessos aleatorios a memoria)\n", argv[0]);
         exit(EXIT_FAILURE);
     }
+    return 0;
 }
