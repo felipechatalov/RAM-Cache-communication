@@ -1,0 +1,29 @@
+Instrucoes para compilar e utilizar o simulador de memoria cache e RAM e como se comunicam.
+
+Como compilar e gerar o codigo executavel:
+Para compilar, utilizando o gcc, compilador de codigo em C, digitamos 'gcc arq.c -o arq',
+assim, compilamos o codigo fonte 'arq.c', a opcao '-o' compila e monta o codigo executavel,
+ja o 'arq' se refere ao nome do arquivo executavel que sera criado.
+
+
+Como utilizar o simulador:
+Ao iniciar o codigo gera uma memoria cache e RAM de tamanhos customizaveis, 
+alem de poder escolher o tamanho do bloco de valores que vai em cada 
+slot da memoria cache, tudo isso pode ser escolhido modificando as constantes no cabecalho
+do codigo.
+Para executar o codigo podemos escrever './arq -s' ou './arq -i'. A opcao '-s'coloca o codigo
+no modo "usuario", ou seja, o usuario pode escolher qual espaco da memoria RAM deseja acessar,
+bem como alterar o valor para outro aleatorio caso queira, bem como tambem pode escolher qual 
+metodo de substituicao deseja utilizar (quando possivel), apos cada acesso e/ou substituicao
+o programa aguarda um input do usuario para processeguir, apos o input, o programa pede novamente
+por um input, dessa vez, outro indice para acessar na memoria ram. Voce tambem pode digitar quit
+para fechar o simulador
+Ja a opcao './arq -i' abre o programa como modo "automatico", significa que o programa gera um 
+vetor de acessos aleatorios a memoria que o usuario pode acompanhar passo a passo, apertando
+alguma tecla para prosseguir apos cada acesso. Neste modo o usuario tambem escolhe qual metodo
+de substituicao deseja utilizar (se aplicavel).
+Caso nenhum parametro '-s' ou '-i' seja utilizado o codigo entra em modo de 'usuario'.
+Para uma melhor visualizacao e funcionamento eh recomendado utilizar o prompt de comando comando
+as seguintes dimensoes, pelo menos 140 de largura e 30 de altura para que nao quebre linha onde
+nao eh necessario. Caso haja necessidade de diminuir o numero de colunas na hora de mostrar a 
+memoria RAM, basta diminuir a variavel 'rows' da funcao 'showRAMandCache'.

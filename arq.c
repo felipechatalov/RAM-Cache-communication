@@ -4,10 +4,13 @@
 #include <string.h>
 
 #define RAM_TEST_ARRAY_SIZE 16
-#define MRAM_SIZE 48
-#define CACHE_SIZE 4 
+#define MRAM_SIZE 1024
+#define CACHE_SIZE 16 
 #define BLOCK_SIZE 4
 #define NULL_VALUE_FOR_CACHE -111
+
+
+
 // standard values for constants: 
 // RAM_TEST_ARRAY_SIZE = 100
 // MRAM_SIZE = 1024
@@ -254,7 +257,6 @@ int printInputObjArray(InputObj testRAM[], int n){
     printf("\n");
     return 1;
 }
-
 // retorna um vetor de acesso aleatorio na memoria ram para o uso do LRU(least recently used)
 int mapLRU(int lru[]){
     int iter = 0;
@@ -685,11 +687,8 @@ int main(int argc, char* argv[]){
         StepByStepAlone();
     }
     else{
-        printf("Argumentos incorretos!\n");
-        printf("Modo de uso:\n");
-        printf("$ '%s -s' (modo passo a passo)\n", argv[0]);
-        printf("$ '%s -i' (modo com acessos aleatorios a memoria)\n", argv[0]);
-        exit(EXIT_FAILURE);
+        printf("Modo Passo a passo com input\n");
+        StepByStepUser();
     }
     return 0;
 }
